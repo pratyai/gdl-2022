@@ -76,6 +76,9 @@ def add_parser_arguments(parent):
     parser = ArgParser(strategy='random_search', parents=[parent],
                        add_help=False)
 
+    # Parameters for quantile regression.
+    parser.add_argument('--quantile', type=float, default=0.025)
+
     parser.add_argument('--seed', type=int, default=-1)
     parser.add_argument('--precision', type=int, default=32)
     parser.add_argument("--model-name", type=str, default='grin')
@@ -125,6 +128,15 @@ def run_experiment(args):
         args.seed = np.random.randint(1e9)
     torch.set_num_threads(1)
     pl.seed_everything(args.seed)
+
+    # If the model file already exists, do not proceed.
+    model_saved_at = f'saved_model/{args.quantile}/'
+    pathlib.Path(model_saved_at).mkdir(parents=True, exist_ok=True)
+    model_file = os.path.join(model_saved_at, 'model.pt')
+    if pathlib.Path(model_file).is_file():
+        print(
+            f'Not training, because a model file already exists: {model_file}')
+        return
 
     tsl.logger.info(f'SEED: {args.seed}')
 
@@ -307,6 +319,10 @@ def run_experiment(args):
                     val_mape=numpy_metrics.masked_mape(y_hat, y_true, mask)))
     if args.neptune_logger:
         logger.finalize('success')
+
+    torch.save(imputer.state_dict(), model_file)
+    print(f'model saved at: {model_file}')
+
     return tsl.logger.info(res)
 
 
