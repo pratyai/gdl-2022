@@ -208,11 +208,11 @@ def run_experiment(args):
     )
 
     # loss_fn = MaskedMAE(compute_on_step=True)
-    loss_fn = MaskedQuantileLoss(quantile=0.025, compute_on_step=True)
+    loss_fn = MaskedQuantileLoss(quantile=args.quantile, compute_on_step=True)
 
-    metrics = {'mqe-0_5': MaskedQuantileLoss(quantile=0.5, compute_on_step=False),
-               'mqe-0_025': MaskedQuantileLoss(quantile=0.025, compute_on_step=False),
-               'mqe-0_975': MaskedQuantileLoss(quantile=0.975, compute_on_step=False),
+    metrics = {'ql-0_5': MaskedQuantileLoss(quantile=0.5, compute_on_step=False),
+               'ql-0_025': MaskedQuantileLoss(quantile=0.025, compute_on_step=False),
+               'ql-0_975': MaskedQuantileLoss(quantile=0.975, compute_on_step=False),
                'mae': MaskedMAE(compute_on_step=False),
                'mse': MaskedMSE(compute_on_step=False),
                'mre': MaskedMRE(compute_on_step=False),
