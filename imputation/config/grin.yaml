@@ -4,7 +4,6 @@ window: 24
 batch_size: 32
 use_lr_schedule: True
 lr: 0.001
-epochs: 20
 batches_per_epoch: 160
 val_len: 0.1
 test_len: 0.2
