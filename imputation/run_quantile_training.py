@@ -302,24 +302,21 @@ def run_experiment(args):
 
     output = trainer.predict(imputer, dataloaders=dm.test_dataloader())
     output = casting.numpy(output)
-    y_hat, y_true, mask = output['y_hat'], \
-        output['y'], \
-        output['mask']
+    y_hat, y_true, mask = output['y_hat'], output['y'], output['mask']
     res = dict(test_mae=numpy_metrics.masked_mae(y_hat, y_true, mask),
                test_mre=numpy_metrics.masked_mre(y_hat, y_true, mask),
                test_mape=numpy_metrics.masked_mape(y_hat, y_true, mask))
 
     output = trainer.predict(imputer, dataloaders=dm.val_dataloader())
     output = casting.numpy(output)
-    y_hat, y_true, mask = output['y_hat'], \
-        output['y'], \
-        output['mask']
+    y_hat, y_true, mask = output['y_hat'],  output['y'], output['mask']
     res.update(dict(val_mae=numpy_metrics.masked_mae(y_hat, y_true, mask),
                     val_mre=numpy_metrics.masked_mre(y_hat, y_true, mask),
                     val_mape=numpy_metrics.masked_mape(y_hat, y_true, mask)))
     if args.neptune_logger:
         logger.finalize('success')
 
+    imputer.freeze()
     torch.save(imputer.state_dict(), model_file)
     print(f'model saved at: {model_file}')
 

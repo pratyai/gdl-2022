@@ -16,7 +16,7 @@ class MaskedQuantileLoss(MaskedMetric):
     """
 
     def __init__(self,
-                 quantile=0.5,
+                 quantile,
                  mask_nans=False,
                  compute_on_step=True,
                  dist_sync_on_step=False,
