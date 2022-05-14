@@ -13,14 +13,16 @@ def impute_centerly(lower, upper):
 
 def impute_uniformly(lower, upper):
     width = upper - lower
-    # Generate a uniform random value for each imputation point, then scale and shift it appropriately.
+    # Generate a uniform random value for each imputation point, then scale and
+    # shift it appropriately.
     q = np.random.uniform(low=0.0, high=1.0, size=width.shape)
     return lower + width * q
 
 
 def impute_normally(lower, upper):
     width = upper - lower
-    # Generate a truncated normal random value for each imputation point, then scale and shift it appropriately.
+    # Generate a truncated normal random value for each imputation point, then
+    # scale and shift it appropriately.
     q = stats.truncnorm.rvs(-0.5, 0.5, size=width.shape)
     return lower + width * (q + 0.5)
 
@@ -34,6 +36,13 @@ def load_quantile_imputer_model(model_path, **kwargs):
 
 
 class SimpleQuantileIntervalImputer:
+    '''
+    Uses two separately trained models to estimate the lower and the upper
+    bounds of the desired quantile-interval. Then yields a single imputation
+    from that interval, using the desired method (which represents an implicit
+    distribution within that interval).
+    '''
+
     def __init__(self, imputer_lower, imputer_upper, method='center') -> None:
         self.imputer_lower = imputer_lower
         self.imputer_upper = imputer_upper
@@ -52,8 +61,10 @@ class SimpleQuantileIntervalImputer:
         output_upper = trainer.predict(
             self.imputer_upper, dataloaders=dataloader)
         output_upper = casting.numpy(output_upper)
+
         y_hat_l, y_hat_u, y_true, mask = output_lower['y_hat'], output_upper[
             'y_hat'], output_lower['y'], output_lower['mask']
+
         imputer_fn = None
         if self.method == 'uniform':
             imputer_fn = impute_uniformly
@@ -62,4 +73,4 @@ class SimpleQuantileIntervalImputer:
         elif self.method == 'normal':
             imputer_fn = impute_normally
         y_hat = imputer_fn(y_hat_l, y_hat_u)
-        return y_hat, y_true, mask
+        return y_hat_l, y_hat_u, y_hat, y_true, mask

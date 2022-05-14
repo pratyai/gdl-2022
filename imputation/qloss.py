@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from tsl.nn.metrics.metric_base import MaskedMetric
 
 
@@ -36,3 +37,27 @@ class MaskedQuantileLoss(MaskedMetric):
     def loss(self, y_pred, target):
         diff = target - y_pred
         return torch.where(target > y_pred, self.quantile * diff, (self.quantile - 1) * diff)
+
+
+def picp(y_hat_lower, y_hat_upper, y):
+    return np.logical_and(y_hat_lower <= y, y <= y_hat_upper).astype(float).mean()
+
+
+def masked_picp(y_hat_lower, y_hat_upper, y, mask=None):
+    if mask is None:
+        mask = slice(None)
+    else:
+        mask = np.asarray(mask, dtype=bool)
+    return picp(y_hat_lower[mask], y_hat_upper[mask], y[mask])
+
+
+def mpiw(y_hat_lower, y_hat_upper):
+    return np.abs(y_hat_upper - y_hat_lower).mean()
+
+
+def masked_mpiw(y_hat_lower, y_hat_upper, mask=None):
+    if mask is None:
+        mask = slice(None)
+    else:
+        mask = np.asarray(mask, dtype=bool)
+    return mpiw(y_hat_upper, y_hat_lower)
