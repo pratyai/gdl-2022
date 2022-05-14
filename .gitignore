@@ -2,4 +2,5 @@
 .ipynb_checkpoints
 log
 tsl
+**/lightning_logs
 **/__pycache__
