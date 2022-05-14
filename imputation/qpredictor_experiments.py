@@ -30,7 +30,7 @@ from tsl.utils import TslExperiment, ArgParser, parser_utils, numpy_metrics
 from tsl.utils.neptune_utils import TslNeptuneLogger
 from tsl.utils.parser_utils import str_to_bool
 
-from qloss import MaskedQuantileLoss
+import qloss
 from qimputer import SimpleQuantileIntervalImputer
 
 tsl.config.config_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -205,8 +205,8 @@ def run_experiment(args):
     imputer_kwargs = parser_utils.filter_argparse_args(args, Imputer,
                                                        return_dict=True)
 
-    # NOTE(pratyai): Many of these parameters should be unnecessary in the context of a frozen model.
-    # How to get rid of them?
+    # NOTE(pratyai): Many of these parameters should be unnecessary in the
+    # context of a frozen model. How to get rid of them?
     sqii = SimpleQuantileIntervalImputer.load(
         os.path.join(f'../saved_model/{args.quantile_lower}/', 'model.pt'),
         os.path.join(f'../saved_model/{args.quantile_upper}/', 'model.pt'),
@@ -249,24 +249,30 @@ def run_experiment(args):
     test_data = dm.test_dataloader()
 
     sqii.method = 'center'
-    y_hat, y_true, mask = sqii.impute(test_data)
+    y_hat_l, y_hat_u, y_hat, y_true, mask = sqii.impute(test_data)
     res = dict(test_mae=numpy_metrics.masked_mae(y_hat, y_true, mask),
                test_mre=numpy_metrics.masked_mre(y_hat, y_true, mask),
-               test_mape=numpy_metrics.masked_mape(y_hat, y_true, mask))
+               test_mape=numpy_metrics.masked_mape(y_hat, y_true, mask),
+               test_picp=qloss.masked_picp(y_hat_l, y_hat_u, y_true, mask),
+               test_mpiw=qloss.masked_mpiw(y_hat_l, y_hat_u, mask))
     tsl.logger.info(('center:', res))
 
     sqii.method = 'uniform'
-    y_hat, y_true, mask = sqii.impute(test_data)
+    y_hat_l, y_hat_u, y_hat, y_true, mask = sqii.impute(test_data)
     res = dict(test_mae=numpy_metrics.masked_mae(y_hat, y_true, mask),
                test_mre=numpy_metrics.masked_mre(y_hat, y_true, mask),
-               test_mape=numpy_metrics.masked_mape(y_hat, y_true, mask))
+               test_mape=numpy_metrics.masked_mape(y_hat, y_true, mask),
+               test_picp=qloss.masked_picp(y_hat_l, y_hat_u, y_true, mask),
+               test_mpiw=qloss.masked_mpiw(y_hat_l, y_hat_u, mask))
     tsl.logger.info(('uniform:', res))
 
     sqii.method = 'normal'
-    y_hat, y_true, mask = sqii.impute(test_data)
+    y_hat_l, y_hat_u, y_hat, y_true, mask = sqii.impute(test_data)
     res = dict(test_mae=numpy_metrics.masked_mae(y_hat, y_true, mask),
                test_mre=numpy_metrics.masked_mre(y_hat, y_true, mask),
-               test_mape=numpy_metrics.masked_mape(y_hat, y_true, mask))
+               test_mape=numpy_metrics.masked_mape(y_hat, y_true, mask),
+               test_picp=qloss.masked_picp(y_hat_l, y_hat_u, y_true, mask),
+               test_mpiw=qloss.masked_mpiw(y_hat_l, y_hat_u, mask))
     tsl.logger.info(('normal:', res))
 
     if args.neptune_logger:
