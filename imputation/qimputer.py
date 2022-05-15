@@ -64,6 +64,11 @@ class SimpleQuantileIntervalImputer:
 
         y_hat_l, y_hat_u, y_true, mask = output_lower['y_hat'], output_upper[
             'y_hat'], output_lower['y'], output_lower['mask']
+        # Note(pratyai): Occasionally the two predictors will predict a lower
+        # bound that is slightly greater than the upper bound. This is just a
+        # hack to avoid such impossible scenarios.
+        y_hat_l, y_hat_u = np.where(y_hat_l <= y_hat_u, y_hat_l, y_hat_u), np.where(
+            y_hat_l <= y_hat_u, y_hat_u, y_hat_l)
 
         imputer_fn = None
         if self.method == 'uniform':
