@@ -54,7 +54,7 @@ class SimpleQuantileIntervalImputer:
         return SimpleQuantileIntervalImputer(lower, upper, method)
 
     def impute(self, dataloader):
-        trainer = pl.Trainer()
+        trainer = pl.Trainer(gpus=1 if torch.cuda.is_available() else None)
         output_lower = trainer.predict(
             self.imputer_lower, dataloaders=dataloader)
         output_lower = casting.numpy(output_lower)
