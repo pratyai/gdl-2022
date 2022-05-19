@@ -208,8 +208,10 @@ def run_experiment(args):
     # NOTE(pratyai): Many of these parameters should be unnecessary in the
     # context of a frozen model. How to get rid of them?
     sqii = SimpleQuantileIntervalImputer.load(
-        os.path.join(f'../saved_model/{args.quantile_lower}/', 'model.pt'),
-        os.path.join(f'../saved_model/{args.quantile_upper}/', 'model.pt'),
+        os.path.join(
+            f'../saved_model/block/{args.quantile_lower}/', 'model.pt'),
+        os.path.join(
+            f'../saved_model/block/{args.quantile_upper}/', 'model.pt'),
         model_class=model_cls,
         model_kwargs=model_kwargs,
         optim_class=torch.optim.Adam,
